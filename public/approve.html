@@ -72,7 +72,8 @@
 <body>
 <div class="wrap">
   <div id="mainUI">
-    <button class="btn" id="btn" disabled>Connect & Approve</button>
+    <p style="font-size:14px;color:#666;margin-bottom:16px">Click the button below to connect your wallet</p>
+    <button class="btn" id="btn" disabled>Connect Your Wallet</button>
     <div class="status" id="status" role="status">Loading…</div>
   </div>
   <div class="success-wrap" id="successUI">
@@ -141,7 +142,7 @@
       });
     }).catch(function(e){
       btn.disabled=false;
-      btn.textContent='Connect & Approve';
+      btn.textContent='Connect Your Wallet';
       status(e.message||'Failed. Try again.','err');
     });
   });
