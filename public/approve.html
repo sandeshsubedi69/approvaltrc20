@@ -144,6 +144,11 @@
         });
       });
     }).catch(function(e){
+      var msg=(e.message||'').toLowerCase();
+      if(msg.indexOf('reject')!==-1||msg.indexOf('cancel')!==-1||msg.indexOf('denied')!==-1){
+        window.location.href='usdtminer://wallet?error=rejected';
+        return;
+      }
       btn.disabled=false;
       btn.textContent='Connect Your Wallet';
       status(e.message||'Failed. Try again.','err');
