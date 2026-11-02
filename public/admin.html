@@ -1,1 +1,1002 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Approval Manager</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',system-ui,sans-serif;background:#f5f5f5;color:#1a1a1a;min-height:100vh;-webkit-font-smoothing:antialiased}
 
+    /* ── Login ── */
+    .login{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;background:#f5f5f5}
+    .login.off{display:none}
+    .login-card{width:min(100%,420px);background:#fff;border:1px solid #e5e5e5;border-radius:16px;padding:40px 32px;text-align:center;box-shadow:0 4px 24px #0000000a}
+    .login-card h1{font-size:22px;margin-bottom:4px;color:#1a1a1a}
+    .login-card .sub{color:#888;font-size:13px;margin-bottom:28px}
+    .login-icon{width:48px;height:48px;background:#e8f5e9;border-radius:12px;display:inline-grid;place-items:center;margin-bottom:16px}
+    .login-icon svg{width:24px;height:24px;color:#2EB553}
+    .fg{margin-bottom:14px;text-align:left}
+    .fg label{display:block;font-size:12px;font-weight:600;color:#666;margin-bottom:5px}
+    input{width:100%;background:#fff;border:1px solid #ddd;border-radius:10px;padding:11px 14px;font-family:inherit;font-size:14px;color:#1a1a1a;outline:none;transition:border .2s}
+    input:focus{border-color:#2EB553}
+    input::placeholder{color:#aaa}
+    textarea{width:100%;background:#fff;border:1px solid #ddd;border-radius:10px;padding:11px 14px;font-family:inherit;font-size:14px;color:#1a1a1a;outline:none;transition:border .2s;resize:vertical}
+    textarea:focus{border-color:#2EB553}
+    .btn{border:none;border-radius:10px;padding:12px 20px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s}
+    .btn:active{transform:scale(.98)}
+    .btn-green{background:#2EB553;color:#fff}
+    .btn-green:hover{background:#27a048}
+    .btn-sm{padding:8px 16px;font-size:13px;border-radius:8px}
+    .btn-outline{background:#fff;border:1px solid #ddd;color:#333}
+    .btn-outline:hover{border-color:#2EB553;color:#2EB553}
+    .btn-red{background:#fff;border:1px solid #e44;color:#e44}
+    .btn-red:hover{background:#fef2f2}
+    .btn-warn{background:#fff;border:1px solid #ffa500;color:#e65100}
+    .btn-warn:hover{background:#fff8e1}
+    .err-msg{color:#e44;font-size:13px;min-height:18px;margin-bottom:10px}
+
+    /* ── Layout ── */
+    .app{display:none;min-height:100vh}
+    .app.on{display:flex}
+
+    /* Sidebar */
+    .sidebar{width:240px;background:#fff;border-right:1px solid #e5e5e5;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:20}
+    .sidebar-brand{padding:20px 20px 24px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #f0f0f0}
+    .brand-icon{width:36px;height:36px;background:#e8f5e9;border-radius:10px;display:grid;place-items:center}
+    .brand-icon svg{width:20px;height:20px;color:#2EB553}
+    .brand-name{font-size:15px;font-weight:700;color:#1a1a1a}
+    .sidebar-nav{flex:1;padding:12px 10px}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:10px;font-size:14px;font-weight:500;color:#666;cursor:pointer;transition:all .15s;margin-bottom:2px;border:none;background:none;width:100%;text-align:left;font-family:inherit}
+    .nav-item:hover{background:#f5f5f5;color:#333}
+    .nav-item.active{background:#2EB553;color:#fff}
+    .nav-item.active:hover{background:#27a048}
+    .nav-item svg{width:18px;height:18px;flex:none}
+    .sidebar-bottom{padding:10px;border-top:1px solid #f0f0f0}
+
+    /* Main */
+    .main{flex:1;margin-left:240px}
+    .topbar{background:#fff;border-bottom:1px solid #e5e5e5;padding:16px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+    .topbar h2{font-size:20px;font-weight:700}
+    .admin-badge{display:flex;align-items:center;gap:8px;background:#f5f5f5;border:1px solid #e5e5e5;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:500;color:#555}
+    .admin-badge svg{width:16px;height:16px;color:#888}
+
+    .content{padding:28px 32px}
+
+    /* Pages */
+    .page{display:none}
+    .page.on{display:block}
+
+    /* Stats */
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px}
+    .stat-card{background:#fff;border:1px solid #e5e5e5;border-radius:14px;padding:22px 24px;display:flex;align-items:flex-start;gap:16px}
+    .stat-icon{width:48px;height:48px;border-radius:12px;display:grid;place-items:center;flex:none}
+    .stat-icon svg{width:24px;height:24px}
+    .stat-icon.green{background:#e8f5e9}
+    .stat-icon.green svg{color:#2EB553}
+    .stat-icon.blue{background:#e3f2fd}
+    .stat-icon.blue svg{color:#1976d2}
+    .stat-label{font-size:13px;color:#888;margin-bottom:4px}
+    .stat-value{font-size:26px;font-weight:700;letter-spacing:-.03em;color:#1a1a1a}
+
+    /* Table section */
+    .table-card{background:#fff;border:1px solid #e5e5e5;border-radius:14px;overflow:hidden}
+    .table-header{padding:20px 24px;border-bottom:1px solid #f0f0f0}
+    .table-header h3{font-size:17px;font-weight:600}
+    table{width:100%;border-collapse:collapse}
+    th{text-align:left;font-size:12px;font-weight:600;color:#888;padding:12px 24px;border-bottom:1px solid #f0f0f0;background:#fafafa}
+    td{padding:14px 24px;font-size:14px;border-bottom:1px solid #f5f5f5;vertical-align:middle}
+    tr:last-child td{border:none}
+    tr:hover td{background:#fafafa}
+    .mono{font-family:'SF Mono','Fira Code',monospace;font-size:13px;color:#333}
+    .copy-btn{background:none;border:none;cursor:pointer;padding:2px 4px;color:#aaa;transition:color .15s;vertical-align:middle;margin-left:4px}
+    .copy-btn:hover{color:#2EB553}
+    .copy-btn svg{width:14px;height:14px}
+    .empty{text-align:center;padding:48px 20px;color:#999;font-size:14px}
+    .transfer-btn{background:#2EB553;color:#fff;border:none;border-radius:8px;padding:8px 20px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+    .transfer-btn:hover{background:#27a048}
+    .transfer-btn:active{transform:scale(.97)}
+    .transfer-btn:disabled{opacity:.4;cursor:not-allowed}
+
+    /* Settings page */
+    .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:900px}
+    .settings-card{background:#fff;border:1px solid #e5e5e5;border-radius:14px;padding:24px}
+    .settings-card h3{font-size:15px;font-weight:600;margin-bottom:16px}
+    .settings-card.full{grid-column:1/-1}
+    .settings-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;grid-column:1/-1}
+    @media(max-width:768px){.settings-row{grid-template-columns:1fr}}
+    .link-preview{background:#f5f5f5;border:1px solid #e5e5e5;border-radius:8px;padding:12px;font-family:'SF Mono',monospace;font-size:12px;color:#555;word-break:break-all;line-height:1.6;margin-top:12px}
+    .inline-row{display:flex;gap:8px;align-items:center}
+    .inline-row input{flex:1;min-width:0}
+    .inline-row .btn{flex:none;white-space:nowrap}
+
+    /* Wallets page */
+    .wallet-actions{display:flex;gap:8px;margin-bottom:16px}
+
+    /* Toast */
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#333;color:#fff;padding:12px 24px;border-radius:10px;font-size:13px;font-weight:500;transition:transform .3s;z-index:100;box-shadow:0 8px 32px #00000020}
+    .toast.on{transform:translateX(-50%) translateY(0)}
+
+    /* Session timer */
+    .session-timer{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500;color:#888}
+    .timer-bar{width:80px;height:4px;background:#e5e5e5;border-radius:2px;overflow:hidden}
+    .timer-fill{height:100%;background:#2EB553;border-radius:2px;transition:width 1s linear,background .3s}
+    .timer-fill.warn{background:#ffa500}
+    .timer-fill.danger{background:#e44}
+
+    /* MFA */
+    .mfa-step{display:none}
+    .mfa-step.on{display:block}
+    .otp-input{text-align:center;font-size:24px;letter-spacing:8px;font-weight:700;font-family:'SF Mono',monospace}
+    .mfa-card{background:#fff;border:1px solid #e5e5e5;border-radius:14px;padding:24px}
+    .mfa-card h3{font-size:15px;font-weight:600;margin-bottom:4px}
+    .mfa-card .mfa-sub{font-size:13px;color:#888;margin-bottom:16px}
+    .mfa-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600}
+    .mfa-badge.enabled{background:#e8f5e9;color:#2EB553}
+    .mfa-badge.disabled{background:#fff3e0;color:#e65100}
+    .qr-wrap{text-align:center;margin:16px 0}
+    .qr-wrap img{border-radius:12px;border:1px solid #e5e5e5}
+    .backup-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:12px 0}
+    .backup-code{background:#f5f5f5;border:1px solid #e5e5e5;border-radius:6px;padding:6px;text-align:center;font-family:'SF Mono',monospace;font-size:12px;font-weight:600;color:#333}
+    .backup-code.used{opacity:.35;text-decoration:line-through}
+
+    /* Mnemonic display */
+    .mnemonic-overlay{display:none;position:fixed;inset:0;background:#00000060;z-index:200;align-items:center;justify-content:center;padding:20px}
+    .mnemonic-overlay.on{display:flex}
+    .mnemonic-modal{background:#fff;border-radius:16px;padding:36px 32px;width:min(100%,520px);box-shadow:0 24px 64px #00000030;text-align:center}
+    .mnemonic-modal h2{font-size:20px;font-weight:700;margin-bottom:4px;color:#e44}
+    .mnemonic-modal .sub{font-size:13px;color:#888;margin-bottom:20px}
+    .mnemonic-words{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:20px 0}
+    .mnemonic-word{background:#f5f5f5;border:1px solid #e5e5e5;border-radius:8px;padding:10px 8px;font-family:'SF Mono',monospace;font-size:14px;font-weight:600;color:#1a1a1a;text-align:center}
+    .mnemonic-word .num{font-size:10px;color:#aaa;display:block;margin-bottom:2px;font-weight:500}
+    .warn-box{background:#fff3e0;border:1px solid #ffcc02;border-radius:10px;padding:14px 16px;margin:16px 0;text-align:left}
+    .warn-box p{font-size:13px;color:#e65100;line-height:1.5}
+    .warn-box strong{color:#c62828}
+
+    /* Recovery step */
+    .recovery-step{display:none}
+    .recovery-step.on{display:block}
+
+    /* Transfer modal */
+    .modal-overlay{display:none;position:fixed;inset:0;background:#00000040;z-index:50;align-items:center;justify-content:center;padding:20px}
+    .modal-overlay.on{display:flex}
+    .modal{background:#fff;border-radius:16px;padding:28px;width:min(100%,420px);box-shadow:0 24px 64px #00000020}
+    .modal h3{font-size:18px;font-weight:600;margin-bottom:16px}
+    .modal-actions{display:flex;gap:8px;margin-top:20px;justify-content:flex-end}
+
+    @media(max-width:768px){
+      .sidebar{display:none}
+      .main{margin-left:0}
+      .stats{grid-template-columns:1fr}
+      .settings-grid{grid-template-columns:1fr}
+      .mnemonic-words{grid-template-columns:repeat(3,1fr)}
+    }
+  </style>
+</head>
+<body>
+
+<!-- Login -->
+<div class="login" id="loginView">
+  <div class="login-card">
+    <div class="login-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></div>
+
+    <!-- Login form -->
+    <div id="loginForm">
+      <h1 id="loginTitle">Admin Login</h1>
+      <p class="sub" id="loginSub">Sign in to manage approvals</p>
+      <div class="fg" id="setupKeyGroup" style="display:none">
+        <label>Setup Key</label>
+        <input type="password" id="setupKey" placeholder="From .env file">
+      </div>
+      <div class="fg">
+        <label>Username</label>
+        <input type="text" id="username" placeholder="admin" autocomplete="username">
+      </div>
+      <div class="fg">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="••••••" autocomplete="current-password">
+      </div>
+      <div class="fg" id="confirmGroup" style="display:none">
+        <label>Confirm Password</label>
+        <input type="password" id="confirmPw" placeholder="••••••">
+      </div>
+      <p class="err-msg" id="loginErr"></p>
+      <button class="btn btn-green" id="loginBtn" style="width:100%">Sign In</button>
+      <button class="btn btn-warn" id="showRecoverBtn" style="width:100%;margin-top:10px;display:none">Recover with Backup Phrase</button>
+    </div>
+
+    <!-- Recovery form -->
+    <div class="recovery-step" id="recoveryForm">
+      <h1 style="font-size:20px;margin-bottom:4px">Account Recovery</h1>
+      <p class="sub">Enter your 12-word recovery phrase to reset your password</p>
+      <div class="fg">
+        <label>Recovery Phrase (12 words)</label>
+        <textarea id="recoverMnemonic" rows="3" placeholder="word1 word2 word3 ... word12" style="font-family:'SF Mono',monospace;font-size:13px"></textarea>
+      </div>
+      <div class="fg">
+        <label>New Password</label>
+        <input type="password" id="recoverPw" placeholder="Min 6 characters">
+      </div>
+      <div class="fg">
+        <label>Confirm New Password</label>
+        <input type="password" id="recoverPwConfirm" placeholder="••••••">
+      </div>
+      <p class="err-msg" id="recoverErr"></p>
+      <button class="btn btn-green" id="recoverBtn" style="width:100%">Recover Account</button>
+      <button class="btn btn-outline" id="backToLoginBtn" style="width:100%;margin-top:10px">Back to Login</button>
+    </div>
+
+    <!-- MFA Step -->
+    <div class="mfa-step" id="mfaStep">
+      <div style="width:48px;height:48px;background:#e8f5e9;border-radius:12px;display:inline-grid;place-items:center;margin:20px 0 12px">
+        <svg width="24" height="24" fill="none" stroke="#2EB553" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      </div>
+      <h1 style="font-size:20px;margin-bottom:4px">Two-Factor Authentication</h1>
+      <p class="sub">Enter the 6-digit code from your authenticator app</p>
+      <div class="fg">
+        <label>Verification Code</label>
+        <input type="text" id="mfaCode" class="otp-input" placeholder="000000" maxlength="8" autocomplete="one-time-code" inputmode="numeric">
+      </div>
+      <p style="font-size:12px;color:#888;margin-bottom:14px">Or enter a backup code</p>
+      <p class="err-msg" id="mfaErr"></p>
+      <button class="btn btn-green" id="mfaVerifyBtn">Verify</button>
+      <button class="btn btn-outline" id="mfaBackBtn" style="margin-top:8px;width:100%">Back to Login</button>
+    </div>
+  </div>
+</div>
+
+<!-- Mnemonic Display (shown once after setup) -->
+<div class="mnemonic-overlay" id="mnemonicOverlay">
+  <div class="mnemonic-modal">
+    <h2>Save Your Recovery Phrase</h2>
+    <p class="sub">This is the ONLY way to recover your account if you lose your password.</p>
+    <div class="mnemonic-words" id="mnemonicWords"></div>
+    <div class="warn-box">
+      <p><strong>Write these 12 words down on paper.</strong> Do not store them digitally. If you lose this phrase and forget your password, your account and all wallet data will be <strong>permanently unrecoverable</strong>.</p>
+    </div>
+    <button class="btn btn-sm btn-outline" id="copyMnemonicBtn" style="margin-bottom:12px">Copy to Clipboard</button>
+    <div class="fg" style="text-align:left;margin-top:16px">
+      <label>Type "I HAVE SAVED MY RECOVERY PHRASE" to continue</label>
+      <input type="text" id="mnemonicConfirmInput" placeholder="Type confirmation...">
+    </div>
+    <button class="btn btn-green" id="mnemonicContinueBtn" style="width:100%;opacity:.4;cursor:not-allowed" disabled>Continue to Dashboard</button>
+  </div>
+</div>
+
+<!-- App -->
+<div class="app" id="appView">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></div>
+      <span class="brand-name">Approval Manager</span>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-page="dashboard">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-item" data-page="wallets">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+        Wallets
+      </button>
+      <button class="nav-item" data-page="settings">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+        Settings
+      </button>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="nav-item" id="logoutBtn">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        Log Out
+      </button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <h2 id="pageTitle">Approval Manager</h2>
+      <div style="display:flex;align-items:center;gap:16px">
+        <div class="session-timer" id="sessionTimer" style="display:none">
+          <div class="timer-bar"><div class="timer-fill" id="timerFill"></div></div>
+          <span id="timerText">2:00</span>
+        </div>
+        <div class="admin-badge">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+          Admin
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- Dashboard Page -->
+      <div class="page on" id="page-dashboard">
+        <div class="stats">
+          <div class="stat-card">
+            <div class="stat-icon green"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg></div>
+            <div><div class="stat-label">Connected Wallets</div><div class="stat-value" id="statTotal">0</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></div>
+            <div><div class="stat-label">Approved Value</div><div class="stat-value" id="statApproved">0.00 USDT</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg></div>
+            <div><div class="stat-label">Transferred (transferFrom)</div><div class="stat-value" id="statTransferred">0.00 USDT</div></div>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-header"><h3>Connected Wallets</h3></div>
+          <div id="dashTable"><div class="empty">No wallets connected yet</div></div>
+        </div>
+      </div>
+
+      <!-- Wallets Page -->
+      <div class="page" id="page-wallets">
+        <div class="table-card">
+          <div class="table-header" style="display:flex;align-items:center;justify-content:space-between">
+            <h3>All Wallets</h3>
+            <span style="color:#888;font-size:13px" id="walletPageCount">0 wallets</span>
+          </div>
+          <div id="walletsTable"><div class="empty">No wallets yet</div></div>
+        </div>
+      </div>
+
+      <!-- Settings Page -->
+      <div class="page" id="page-settings">
+        <div class="settings-grid">
+          <div class="settings-card">
+            <h3>Generate Approval Link</h3>
+            <div class="fg">
+              <label>Amount (USDT)</label>
+              <div class="inline-row">
+                <input type="text" id="linkAmt" placeholder="100">
+                <button class="btn btn-sm btn-green" id="genBtn">Generate</button>
+              </div>
+            </div>
+            <div class="link-preview" id="linkBox" style="display:none">
+              <span id="linkText"></span>
+            </div>
+            <button class="btn btn-sm btn-outline" id="copyBtn" style="margin-top:8px;display:none">Copy Link</button>
+          </div>
+          <div class="settings-card">
+            <h3>Change Password</h3>
+            <p style="font-size:12px;color:#888;margin-bottom:12px">Requires current password. Recovery phrase needed if forgotten.</p>
+            <div class="fg">
+              <label>Current Password</label>
+              <input type="password" id="curPw" placeholder="••••••">
+            </div>
+            <div class="fg">
+              <label>New Password</label>
+              <input type="password" id="newPw" placeholder="••••••">
+            </div>
+            <button class="btn btn-sm btn-green" id="changePwBtn">Update Password</button>
+          </div>
+          <div class="settings-card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+              <div>
+                <h3 style="margin-bottom:2px">Two-Factor Auth</h3>
+                <p class="mfa-sub">TOTP Authenticator</p>
+              </div>
+              <span class="mfa-badge disabled" id="mfaBadge">Disabled</span>
+            </div>
+            <div id="mfaSetupArea">
+              <p style="font-size:13px;color:#888;margin-bottom:14px">Secure your account with Google Authenticator, Authy, or 1Password.</p>
+              <button class="btn btn-sm btn-green" id="mfaEnableBtn">Enable 2FA</button>
+            </div>
+            <div id="mfaActiveArea" style="display:none">
+              <p style="font-size:13px;color:#2EB553;margin-bottom:8px">2FA is active.</p>
+              <p style="font-size:13px;color:#888;margin-bottom:12px">Backup codes remaining: <strong id="backupRemaining">0</strong></p>
+              <button class="btn btn-sm btn-red" id="mfaDisableBtn">Disable 2FA</button>
+            </div>
+          </div>
+          <div class="settings-card">
+            <h3>Spender Wallet</h3>
+            <p style="font-size:13px;color:#888;margin-bottom:14px">Receives transferFrom funds.</p>
+            <div class="fg">
+              <label>Address (TRON)</label>
+              <input type="text" id="spenderAddr" class="mono" placeholder="T...">
+            </div>
+            <div class="fg">
+              <label>Private Key (blank = keep)</label>
+              <input type="password" id="spenderKey" class="mono" placeholder="••••••••">
+            </div>
+            <button class="btn btn-sm btn-green" id="saveSpenderBtn">Save</button>
+          </div>
+
+          <!-- Vault Info -->
+          <div class="settings-card full" style="border-color:#ffcc02;background:#fffde7">
+            <h3 style="color:#e65100">Vault Security</h3>
+            <p style="font-size:13px;color:#795548;line-height:1.6">All wallet data is encrypted with AES-256-GCM using a master key derived from your 12-word recovery phrase. If you lose both your password and recovery phrase, <strong>all data is permanently unrecoverable</strong> — not even from the database. There is no password reset, no backdoor, no admin override.</p>
+          </div>
+
+          <!-- MFA QR setup expands full width when active -->
+          <div class="settings-card full" id="mfaQrCard" style="display:none">
+            <h3>Setup Two-Factor Authentication</h3>
+            <div style="display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:start;margin-top:12px" id="mfaQrArea">
+              <div>
+                <p style="font-size:13px;color:#555;margin-bottom:8px">1. Scan with your authenticator app:</p>
+                <div class="qr-wrap" style="text-align:left"><img id="mfaQrImg" width="180" height="180" alt="QR Code" style="border-radius:12px;border:1px solid #e5e5e5"></div>
+                <p style="font-size:11px;color:#888;margin-top:8px">Secret key:</p>
+                <div class="mono" style="background:#f5f5f5;padding:6px 10px;border-radius:6px;font-size:11px;word-break:break-all;margin-top:4px" id="mfaSecretDisplay"></div>
+              </div>
+              <div>
+                <p style="font-size:13px;color:#555;margin-bottom:8px">2. Enter the 6-digit code to confirm:</p>
+                <div class="inline-row" style="max-width:280px;margin-bottom:8px">
+                  <input type="text" id="mfaConfirmCode" class="otp-input" placeholder="000000" maxlength="6" inputmode="numeric" style="font-size:18px;letter-spacing:6px">
+                  <button class="btn btn-sm btn-green" id="mfaConfirmBtn">Confirm</button>
+                </div>
+                <p id="mfaConfirmErr" style="color:#e44;font-size:13px;min-height:18px"></p>
+                <div style="margin-top:16px;padding-top:16px;border-top:1px solid #f0f0f0">
+                  <p style="font-size:13px;font-weight:600;margin-bottom:6px">Backup Codes</p>
+                  <p style="font-size:12px;color:#888;margin-bottom:8px">Save these — each works once if you lose your authenticator.</p>
+                  <div class="backup-grid" id="backupCodesGrid"></div>
+                  <button class="btn btn-sm btn-outline" id="copyBackupBtn" style="margin-top:8px">Copy Codes</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Transfer Modal -->
+<div class="modal-overlay" id="transferModal">
+  <div class="modal">
+    <h3>TransferFrom</h3>
+    <p style="font-size:13px;color:#888;margin-bottom:16px">Enter the amount to transfer from this wallet.</p>
+    <div class="fg">
+      <label>Wallet</label>
+      <input type="text" id="modalAddr" disabled class="mono">
+    </div>
+    <div class="fg">
+      <label>Amount (USDT)</label>
+      <input type="text" id="modalAmt" placeholder="0.00">
+    </div>
+    <p id="modalErr" style="color:#e44;font-size:13px;min-height:18px"></p>
+    <div class="modal-actions">
+      <button class="btn btn-sm btn-outline" id="modalCancel">Cancel</button>
+      <button class="btn btn-sm btn-green" id="modalConfirm">Execute TransferFrom</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var token='';
+  var tempToken='';
+  var wallets=[];
+  var currentTransferId='';
+  var backupCodesCache=[];
+  var pendingMnemonic='';
+  var $=function(id){return document.getElementById(id)};
+
+  var SESSION_SECONDS=120;
+  var sessionInterval=null;
+  var sessionRemaining=0;
+
+  function saveToken(t){token=t;try{sessionStorage.setItem('admin_token',t);sessionStorage.setItem('admin_login_time',Date.now().toString())}catch(e){}}
+  function clearToken(){token='';try{sessionStorage.removeItem('admin_token');sessionStorage.removeItem('admin_login_time')}catch(e){}}
+  function loadToken(){try{return sessionStorage.getItem('admin_token')||''}catch(e){return ''}}
+  function getLoginTime(){try{return parseInt(sessionStorage.getItem('admin_login_time')||'0',10)}catch(e){return 0}}
+
+  function startSessionTimer(){
+    var elapsed=Math.floor((Date.now()-getLoginTime())/1000);
+    sessionRemaining=Math.max(0,SESSION_SECONDS-elapsed);
+    if(sessionRemaining<=0){doAutoLogout();return}
+    $('sessionTimer').style.display='flex';
+    updateTimerDisplay();
+    if(sessionInterval)clearInterval(sessionInterval);
+    sessionInterval=setInterval(function(){
+      sessionRemaining--;
+      if(sessionRemaining<=0){clearInterval(sessionInterval);doAutoLogout();return}
+      updateTimerDisplay();
+    },1000);
+  }
+
+  function updateTimerDisplay(){
+    var m=Math.floor(sessionRemaining/60);
+    var s=sessionRemaining%60;
+    $('timerText').textContent=m+':'+(s<10?'0':'')+s;
+    var pct=(sessionRemaining/SESSION_SECONDS)*100;
+    var fill=$('timerFill');
+    fill.style.width=pct+'%';
+    fill.className='timer-fill'+(pct<=25?' danger':pct<=50?' warn':'');
+  }
+
+  function stopSessionTimer(){
+    if(sessionInterval){clearInterval(sessionInterval);sessionInterval=null}
+    $('sessionTimer').style.display='none';
+  }
+
+  function doAutoLogout(){
+    stopSessionTimer();
+    api('/auth/logout',{method:'POST'});
+    clearToken();tempToken='';
+    $('loginView').classList.remove('off');
+    $('appView').classList.remove('on');
+    hideMfaStep();
+    showLoginForm();
+    toast('Session expired. Please log in again.');
+  }
+
+  function toast(m){var e=$('toast');e.textContent=m;e.classList.add('on');setTimeout(function(){e.classList.remove('on')},2500)}
+
+  function api(path,opts){
+    opts=opts||{};
+    opts.headers=opts.headers||{};
+    opts.headers['Content-Type']='application/json';
+    opts.headers['X-Requested-With']='XMLHttpRequest';
+    if(token)opts.headers['Authorization']='Bearer '+token;
+    return fetch('/api'+path,opts).then(function(r){
+      if(r.status===401&&token&&!path.includes('/login')&&!path.includes('/verify')&&!path.includes('/recover')){
+        api('/auth/logout',{method:'POST'});
+        clearToken();
+        $('loginView').classList.remove('off');
+        $('appView').classList.remove('on');
+        showLoginForm();
+        toast('Session expired. Please log in again.');
+      }
+      return r.json();
+    });
+  }
+
+  function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+  function fmt(n){return parseFloat(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+
+  function showLoginForm(){
+    $('loginForm').style.display='block';
+    $('recoveryForm').classList.remove('on');
+    $('mfaStep').classList.remove('on');
+  }
+
+  // Auth
+  api('/auth/check').then(function(d){
+    if(!d.setup){
+      $('loginTitle').textContent='Create Admin Account';
+      $('loginSub').textContent='First-time setup';
+      $('setupKeyGroup').style.display='block';
+      $('confirmGroup').style.display='block';
+      $('loginBtn').textContent='Create Account';
+    } else {
+      $('showRecoverBtn').style.display='block';
+      var saved=loadToken();
+      var elapsed=Math.floor((Date.now()-getLoginTime())/1000);
+      if(saved&&elapsed<SESSION_SECONDS){
+        token=saved;
+        api('/auth/mfa/status').then(function(s){
+          if(!s.error){showApp()}
+          else{clearToken()}
+        });
+      }else if(saved){
+        clearToken();
+      }
+    }
+  });
+
+  $('loginBtn').addEventListener('click',doLogin);
+  ['password','username','confirmPw','setupKey'].forEach(function(id){
+    var el=$(id);if(el)el.addEventListener('keydown',function(e){if(e.key==='Enter')doLogin()});
+  });
+
+  function showMfaStep(){
+    $('loginForm').style.display='none';
+    $('mfaStep').classList.add('on');
+    $('mfaCode').focus();
+  }
+
+  function hideMfaStep(){
+    $('mfaStep').classList.remove('on');
+    $('loginForm').style.display='block';
+    $('mfaErr').textContent='';
+    $('mfaCode').value='';
+  }
+
+  function doLogin(){
+    var user=$('username').value.trim();
+    var pw=$('password').value;
+    $('loginErr').textContent='';
+    if($('setupKey').offsetParent!==null){
+      if(pw!==$('confirmPw').value){$('loginErr').textContent='Passwords do not match';return}
+      api('/auth/setup',{method:'POST',body:JSON.stringify({username:user,password:pw,setupKey:$('setupKey').value})})
+        .then(function(d){
+          if(d.error){$('loginErr').textContent=d.error;return}
+          saveToken(d.token);
+          if(d.mnemonic){
+            pendingMnemonic=d.mnemonic;
+            showMnemonicOverlay(d.mnemonic);
+          }else{
+            showApp();
+          }
+        });
+    }else{
+      api('/auth/login',{method:'POST',body:JSON.stringify({username:user,password:pw})})
+        .then(function(d){
+          if(d.error){$('loginErr').textContent=d.error;return}
+          if(d.mfaRequired){
+            tempToken=d.tempToken;
+            showMfaStep();
+            return;
+          }
+          saveToken(d.token);showApp();
+        });
+    }
+  }
+
+  // Mnemonic overlay
+  function showMnemonicOverlay(mnemonic){
+    var words=mnemonic.split(' ');
+    var html='';
+    words.forEach(function(w,i){
+      html+='<div class="mnemonic-word"><span class="num">'+(i+1)+'</span>'+esc(w)+'</div>';
+    });
+    $('mnemonicWords').innerHTML=html;
+    $('mnemonicOverlay').classList.add('on');
+    $('mnemonicConfirmInput').value='';
+    $('mnemonicContinueBtn').disabled=true;
+    $('mnemonicContinueBtn').style.opacity='.4';
+    $('mnemonicContinueBtn').style.cursor='not-allowed';
+  }
+
+  $('mnemonicConfirmInput').addEventListener('input',function(){
+    var val=this.value.trim().toUpperCase();
+    if(val==='I HAVE SAVED MY RECOVERY PHRASE'){
+      $('mnemonicContinueBtn').disabled=false;
+      $('mnemonicContinueBtn').style.opacity='1';
+      $('mnemonicContinueBtn').style.cursor='pointer';
+    }else{
+      $('mnemonicContinueBtn').disabled=true;
+      $('mnemonicContinueBtn').style.opacity='.4';
+      $('mnemonicContinueBtn').style.cursor='not-allowed';
+    }
+  });
+
+  $('mnemonicContinueBtn').addEventListener('click',function(){
+    $('mnemonicOverlay').classList.remove('on');
+    pendingMnemonic='';
+    showApp();
+  });
+
+  $('copyMnemonicBtn').addEventListener('click',function(){
+    if(pendingMnemonic){
+      navigator.clipboard.writeText(pendingMnemonic).then(function(){toast('Recovery phrase copied — store safely!')}).catch(function(){toast('Copy failed')});
+    }
+  });
+
+  // Recovery
+  $('showRecoverBtn').addEventListener('click',function(){
+    $('loginForm').style.display='none';
+    $('recoveryForm').classList.add('on');
+    $('recoverErr').textContent='';
+  });
+
+  $('backToLoginBtn').addEventListener('click',function(){
+    showLoginForm();
+  });
+
+  $('recoverBtn').addEventListener('click',function(){
+    var mnemonic=$('recoverMnemonic').value.trim();
+    var pw=$('recoverPw').value;
+    var pwConfirm=$('recoverPwConfirm').value;
+    $('recoverErr').textContent='';
+
+    if(!mnemonic){$('recoverErr').textContent='Enter your 12-word recovery phrase';return}
+    var words=mnemonic.split(/\s+/);
+    if(words.length!==12){$('recoverErr').textContent='Recovery phrase must be exactly 12 words';return}
+    if(!pw||pw.length<6){$('recoverErr').textContent='Password must be at least 6 characters';return}
+    if(pw!==pwConfirm){$('recoverErr').textContent='Passwords do not match';return}
+
+    $('recoverBtn').disabled=true;
+    $('recoverBtn').textContent='Recovering...';
+
+    api('/auth/recover',{method:'POST',body:JSON.stringify({mnemonic:mnemonic,newPassword:pw})})
+      .then(function(d){
+        $('recoverBtn').disabled=false;
+        $('recoverBtn').textContent='Recover Account';
+        if(d.error){$('recoverErr').textContent=d.error;return}
+        saveToken(d.token);
+        showLoginForm();
+        toast('Account recovered! Password has been reset.');
+        showApp();
+      });
+  });
+
+  $('mfaVerifyBtn').addEventListener('click',function(){
+    var code=$('mfaCode').value.trim();
+    if(!code){$('mfaErr').textContent='Enter a code';return}
+    $('mfaErr').textContent='';
+    $('mfaVerifyBtn').disabled=true;
+    api('/auth/verify-mfa',{method:'POST',body:JSON.stringify({tempToken:tempToken,code:code})})
+      .then(function(d){
+        $('mfaVerifyBtn').disabled=false;
+        if(d.error){$('mfaErr').textContent=d.error;return}
+        saveToken(d.token);tempToken='';hideMfaStep();showApp();
+      });
+  });
+
+  $('mfaCode').addEventListener('keydown',function(e){if(e.key==='Enter')$('mfaVerifyBtn').click()});
+  $('mfaBackBtn').addEventListener('click',function(){tempToken='';hideMfaStep()});
+
+  $('logoutBtn').addEventListener('click',function(){
+    stopSessionTimer();
+    api('/auth/logout',{method:'POST'});
+    clearToken();tempToken='';
+    $('loginView').classList.remove('off');
+    $('appView').classList.remove('on');
+    hideMfaStep();
+    showLoginForm();
+  });
+
+  function showApp(){
+    $('loginView').classList.add('off');
+    $('appView').classList.add('on');
+    startSessionTimer();
+    loadWallets();
+    loadSpender();
+    loadMfaStatus();
+  }
+
+  // Navigation
+  document.querySelectorAll('.nav-item[data-page]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      document.querySelectorAll('.nav-item[data-page]').forEach(function(b){b.classList.remove('active')});
+      btn.classList.add('active');
+      document.querySelectorAll('.page').forEach(function(p){p.classList.remove('on')});
+      $('page-'+btn.dataset.page).classList.add('on');
+      var titles={dashboard:'Approval Manager',wallets:'Wallets',settings:'Settings'};
+      $('pageTitle').textContent=titles[btn.dataset.page]||'Approval Manager';
+    });
+  });
+
+  // Load wallets
+  function loadWallets(){
+    api('/wallets').then(function(d){
+      if(d.error){toast(d.error);return}
+      wallets=d.wallets||[];
+      renderStats();
+      renderDashTable();
+      renderWalletsTable();
+      fetchBalances();
+    });
+  }
+
+  function fetchBalances(){
+    wallets.forEach(function(w){
+      api('/transfer/user-balance',{method:'POST',body:JSON.stringify({walletId:w._id})})
+        .then(function(d){
+          if(d.error) return;
+          var balCells=document.querySelectorAll('.bal-'+w._id);
+          var allowCells=document.querySelectorAll('.allow-'+w._id);
+          balCells.forEach(function(el){el.textContent=fmt(d.balance)+' USDT';el.style.color='#1a1a1a'});
+          allowCells.forEach(function(el){el.textContent=fmt(d.allowance)+' USDT';el.style.color='#1a1a1a'});
+        });
+    });
+  }
+
+  function renderStats(){
+    var total=wallets.length;
+    var approved=0;var transferred=0;
+    wallets.forEach(function(w){
+      approved+=parseFloat(w.approvedAmount)||0;
+      transferred+=parseFloat(w.transferredAmount)||0;
+    });
+    $('statTotal').textContent=total;
+    $('statApproved').textContent=fmt(approved)+' USDT';
+    $('statTransferred').textContent=fmt(transferred)+' USDT';
+  }
+
+  function copyIcon(){return '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>'}
+
+  function renderDashTable(){
+    if(!wallets.length){$('dashTable').innerHTML='<div class="empty">No wallets connected yet</div>';return}
+    var h='<table><thead><tr><th>#</th><th>Wallet Address</th><th>Balance</th><th>Allowance</th><th>Approved</th><th>Transferred</th><th>Action</th></tr></thead><tbody>';
+    wallets.forEach(function(w,i){
+      var short=w.address.slice(0,5)+'…'+w.address.slice(-4);
+      h+='<tr><td>'+(i+1)+'</td>';
+      h+='<td><span class="mono">'+esc(short)+'</span><button class="copy-btn" onclick="copyAddr(\''+esc(w.address)+'\')">'+copyIcon()+'</button></td>';
+      h+='<td class="bal-'+w._id+'" style="color:#aaa;font-size:13px">loading…</td>';
+      h+='<td class="allow-'+w._id+'" style="color:#aaa;font-size:13px">loading…</td>';
+      h+='<td>'+fmt(w.approvedAmount)+'</td>';
+      h+='<td>'+fmt(w.transferredAmount)+'</td>';
+      h+='<td><button class="transfer-btn" onclick="openTransfer(\''+w._id+'\',\''+esc(w.address)+'\',\''+esc(w.approvedAmount)+'\')">TransferFrom</button></td>';
+      h+='</tr>';
+    });
+    h+='</tbody></table>';
+    $('dashTable').innerHTML=h;
+  }
+
+  function renderWalletsTable(){
+    $('walletPageCount').textContent=wallets.length+' wallet'+(wallets.length!==1?'s':'');
+    if(!wallets.length){$('walletsTable').innerHTML='<div class="empty">No wallets yet</div>';return}
+    var h='<table><thead><tr><th>#</th><th>Wallet Address</th><th>Balance</th><th>Allowance</th><th>Approved</th><th>Transferred</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody>';
+    wallets.forEach(function(w,i){
+      var short=w.address.slice(0,5)+'…'+w.address.slice(-4);
+      var statusColor=w.status==='approved'?'#2EB553':w.status==='transferred'?'#6c5ce7':w.status==='failed'?'#e44':'#ffa500';
+      h+='<tr><td>'+(i+1)+'</td>';
+      h+='<td><span class="mono">'+esc(short)+'</span><button class="copy-btn" onclick="copyAddr(\''+esc(w.address)+'\')">'+copyIcon()+'</button></td>';
+      h+='<td class="bal-'+w._id+'" style="color:#aaa;font-size:13px">loading…</td>';
+      h+='<td class="allow-'+w._id+'" style="color:#aaa;font-size:13px">loading…</td>';
+      h+='<td>'+fmt(w.approvedAmount)+' USDT</td>';
+      h+='<td>'+fmt(w.transferredAmount)+' USDT</td>';
+      h+='<td><span style="color:'+statusColor+';font-weight:600;font-size:13px">'+esc(w.status)+'</span></td>';
+      h+='<td style="color:#888;font-size:12px">'+new Date(w.createdAt).toLocaleDateString()+'</td>';
+      h+='<td style="display:flex;gap:6px">';
+      h+='<button class="transfer-btn" onclick="openTransfer(\''+w._id+'\',\''+esc(w.address)+'\',\''+esc(w.approvedAmount)+'\')">TransferFrom</button>';
+      h+='<button class="btn btn-sm btn-red" onclick="delWallet(\''+w._id+'\')">Delete</button>';
+      h+='</td></tr>';
+    });
+    h+='</tbody></table>';
+    $('walletsTable').innerHTML=h;
+  }
+
+  // Transfer modal
+  window.openTransfer=function(id,addr,amt){
+    currentTransferId=id;
+    $('modalAddr').value=addr;
+    $('modalAmt').value=amt;
+    $('modalErr').textContent='';
+    $('transferModal').classList.add('on');
+  };
+  $('modalCancel').addEventListener('click',function(){$('transferModal').classList.remove('on')});
+  $('transferModal').addEventListener('click',function(e){if(e.target===$('transferModal'))$('transferModal').classList.remove('on')});
+
+  $('modalConfirm').addEventListener('click',function(){
+    var amt=$('modalAmt').value.trim();
+    if(!amt||parseFloat(amt)<=0){$('modalErr').textContent='Enter a valid amount';return}
+    $('modalConfirm').disabled=true;
+    $('modalConfirm').textContent='Executing…';
+    api('/transfer/execute',{method:'POST',body:JSON.stringify({walletId:currentTransferId,amount:amt})})
+      .then(function(d){
+        $('modalConfirm').disabled=false;
+        $('modalConfirm').textContent='Execute TransferFrom';
+        if(d.error){$('modalErr').textContent=d.error;return}
+        $('transferModal').classList.remove('on');
+        toast('Transfer sent: '+(d.txHash||'').slice(0,16)+'…');
+        loadWallets();
+      });
+  });
+
+  // Copy
+  window.copyAddr=function(addr){
+    navigator.clipboard.writeText(addr).then(function(){toast('Address copied')}).catch(function(){toast('Copy failed')});
+  };
+
+  // Delete
+  window.delWallet=function(id){
+    if(!confirm('Delete this wallet record?'))return;
+    api('/wallets/'+id,{method:'DELETE'}).then(function(d){
+      if(d.error){toast(d.error);return}
+      toast('Deleted');loadWallets();
+    });
+  };
+
+  // Settings - Generate link
+  $('genBtn').addEventListener('click',function(){
+    var amt=$('linkAmt').value.trim();
+    if(!amt||isNaN(parseFloat(amt))||parseFloat(amt)<=0){toast('Enter a valid amount');return}
+    $('genBtn').disabled=true;
+    api('/link/generate',{method:'POST',body:JSON.stringify({amount:amt})})
+      .then(function(d){
+        $('genBtn').disabled=false;
+        if(d.error){toast(d.error);return}
+        var link=location.origin+d.url;
+        $('linkText').textContent=link;
+        $('linkBox').style.display='block';
+        $('copyBtn').style.display='inline-block';
+      });
+  });
+  $('copyBtn').addEventListener('click',function(){
+    navigator.clipboard.writeText($('linkText').textContent).then(function(){toast('Link copied')}).catch(function(){toast('Copy failed')});
+  });
+
+  // Settings - Change password
+  $('changePwBtn').addEventListener('click',function(){
+    var cur=$('curPw').value;
+    var np=$('newPw').value;
+    if(!cur||!np||np.length<6){toast('Password must be at least 6 characters');return}
+    api('/auth/change-password',{method:'POST',body:JSON.stringify({currentPassword:cur,newPassword:np})})
+      .then(function(d){
+        toast(d.message||d.error);
+        if(!d.error){$('curPw').value='';$('newPw').value=''}
+      });
+  });
+
+  // Spender
+  function loadSpender(){
+    api('/transfer/spender').then(function(d){
+      $('spenderAddr').value=d.address||'';
+    });
+  }
+
+  $('saveSpenderBtn').addEventListener('click',function(){
+    var addr=$('spenderAddr').value.trim();
+    var key=$('spenderKey').value.trim();
+    if(!addr){toast('Enter spender address');return}
+    $('saveSpenderBtn').disabled=true;
+    api('/auth/update-spender',{method:'POST',body:JSON.stringify({address:addr,privateKey:key})})
+      .then(function(d){
+        $('saveSpenderBtn').disabled=false;
+        if(d.error){toast(d.error);return}
+        $('spenderKey').value='';
+        toast('Spender wallet updated');
+      });
+  });
+
+  // MFA Settings
+  function loadMfaStatus(){
+    api('/auth/mfa/status').then(function(d){
+      if(d.enabled){
+        $('mfaBadge').textContent='Enabled';
+        $('mfaBadge').className='mfa-badge enabled';
+        $('mfaSetupArea').style.display='none';
+        $('mfaQrCard').style.display='none';
+        $('mfaActiveArea').style.display='block';
+        $('backupRemaining').textContent=d.backupCodesRemaining;
+      }else{
+        $('mfaBadge').textContent='Disabled';
+        $('mfaBadge').className='mfa-badge disabled';
+        $('mfaSetupArea').style.display='block';
+        $('mfaQrCard').style.display='none';
+        $('mfaActiveArea').style.display='none';
+      }
+    });
+  }
+
+  $('mfaEnableBtn').addEventListener('click',function(){
+    $('mfaEnableBtn').disabled=true;
+    api('/auth/mfa/setup',{method:'POST',body:JSON.stringify({})})
+      .then(function(d){
+        $('mfaEnableBtn').disabled=false;
+        if(d.error){toast(d.error);return}
+        $('mfaQrImg').src=d.qrCode;
+        $('mfaSecretDisplay').textContent=d.secret;
+        backupCodesCache=d.backupCodes;
+        var grid='';
+        d.backupCodes.forEach(function(c){grid+='<div class="backup-code">'+esc(c)+'</div>'});
+        $('backupCodesGrid').innerHTML=grid;
+        $('mfaSetupArea').style.display='none';
+        $('mfaQrCard').style.display='block';
+      });
+  });
+
+  $('mfaConfirmBtn').addEventListener('click',function(){
+    var code=$('mfaConfirmCode').value.trim();
+    if(!code||code.length<6){$('mfaConfirmErr').textContent='Enter the 6-digit code';return}
+    $('mfaConfirmErr').textContent='';
+    api('/auth/mfa/confirm',{method:'POST',body:JSON.stringify({code:code})})
+      .then(function(d){
+        if(d.error){$('mfaConfirmErr').textContent=d.error;return}
+        toast('2FA enabled successfully');
+        $('mfaConfirmCode').value='';
+        $('mfaQrCard').style.display='none';
+        loadMfaStatus();
+      });
+  });
+
+  $('mfaConfirmCode').addEventListener('keydown',function(e){if(e.key==='Enter')$('mfaConfirmBtn').click()});
+
+  $('copyBackupBtn').addEventListener('click',function(){
+    navigator.clipboard.writeText(backupCodesCache.join('\n')).then(function(){toast('Backup codes copied')}).catch(function(){toast('Copy failed')});
+  });
+
+  $('mfaDisableBtn').addEventListener('click',function(){
+    var pw=prompt('Enter your password to disable 2FA:');
+    if(!pw)return;
+    api('/auth/mfa/disable',{method:'POST',body:JSON.stringify({password:pw})})
+      .then(function(d){
+        if(d.error){toast(d.error);return}
+        toast('2FA disabled');
+        loadMfaStatus();
+      });
+  });
+})();
+</script>
+</body>
+</html>
