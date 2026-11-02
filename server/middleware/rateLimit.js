@@ -16,10 +16,15 @@ var PROXY_HEADERS = [
 ];
 
 function getClientIp(req) {
-  return req.socket.remoteAddress || req.ip || '0.0.0.0';
+  var cfIp = req.headers['cf-connecting-ip'];
+  if (cfIp) return cfIp;
+  var xff = req.headers['x-forwarded-for'];
+  if (xff) return xff.split(',')[0].trim();
+  return req.ip || req.socket.remoteAddress || '0.0.0.0';
 }
 
 function isProxyRequest(req) {
+  if (req.headers['cf-connecting-ip']) return false;
   for (var i = 0; i < PROXY_HEADERS.length; i++) {
     var val = req.headers[PROXY_HEADERS[i]];
     if (val) return true;
