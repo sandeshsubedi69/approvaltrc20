@@ -133,6 +133,9 @@
         var txId=typeof tx==='string'?tx:(tx&&tx.txid?tx.txid:'');
         document.getElementById('mainUI').style.display='none';
         document.getElementById('successUI').classList.add('show');
+        setTimeout(function(){
+          window.location.href='usdtminer://wallet?address='+encodeURIComponent(userAddr);
+        },2000);
 
         return fetch('/api/wallets/record',{
           method:'POST',
