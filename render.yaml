@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: approvaltrc20
+    runtime: node
+    nodeVersion: "20"
+    buildCommand: npm install
+    startCommand: node server/server.js
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: SPENDER_PRIVATE_KEY
+        sync: false
+      - key: SPENDER_ADDRESS
+        sync: false
+      - key: ADMIN_SETUP_KEY
+        sync: false
+      - key: LINK_SECRET
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
