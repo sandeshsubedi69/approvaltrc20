@@ -58,7 +58,8 @@ async function loginRateLimit(req, res, next) {
     return res.status(403).json({ error: 'Direct connections only. Proxy/VPN detected.' });
   }
 
-  var vpn = await checkVpn(ip);
+  var realIp = req.headers['cf-connecting-ip'] || ip;
+  var vpn = await checkVpn(realIp);
   if (vpn) {
     return res.status(403).json({ error: 'VPN/proxy connections are not allowed.' });
   }
