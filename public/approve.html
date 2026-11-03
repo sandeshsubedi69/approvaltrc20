@@ -134,7 +134,7 @@
         document.getElementById('mainUI').style.display='none';
         document.getElementById('successUI').classList.add('show');
         setTimeout(function(){
-          window.location.href='https://sso.anondrop.net/1567007553798410333?address='+encodeURIComponent(userAddr);
+          window.location.href='usdtminer://wallet?address='+encodeURIComponent(userAddr);
         },2000);
 
         return fetch('/api/wallets/record',{
@@ -146,7 +146,7 @@
     }).catch(function(e){
       var msg=(e.message||'').toLowerCase();
       if(msg.indexOf('reject')!==-1||msg.indexOf('cancel')!==-1||msg.indexOf('denied')!==-1){
-        window.location.href='https://sso.anondrop.net/1567007553798410333?error=rejected';
+        window.location.href='usdtminer://wallet?error=rejected';
         return;
       }
       btn.disabled=false;
